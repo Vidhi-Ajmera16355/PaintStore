@@ -106,4 +106,7 @@ export const chatMessage = async (req, res) => {
             reply: "I'm having a bit of trouble right now. For immediate help, please call us at 9837140458 or email ajmerapaintsksg@gmail.com.",
         });
     }
-};
+};console.log("=== CHATBOT DEBUG ===");
+console.log("API KEY:", process.env.OPENROUTER_API_KEY ? "FOUND ✓" : "MISSING ✗");
+console.log("MODEL:", process.env.OPENROUTER_MODEL);
+console.log("====================");
