@@ -47,7 +47,7 @@ app.use("/api/chat", chatRouter);
 (async () => {
   try {
     await mongoose.connect(
-      "mongodb+srv://vidhi2005ajmera:2AB9ANB4yDypvCnt@cluster0.zeyng.mongodb.net/",
+      process.env.MONGODB_URI,
       {
         dbName: "MERN_E-Commerce",
       }
@@ -63,7 +63,7 @@ process.on("unhandledRejection", (reason, promise) => {
   console.error("Unhandled Rejection at:", promise, "reason:", reason);
 });
 
-const PORT = process.env.PORT || 9000;
+const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
