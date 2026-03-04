@@ -49,7 +49,7 @@ export const chatMessage = async (req, res) => {
         let productContext = "";
         try {
 
-        const products = await Product.find({}, "title category price").limit(50);
+        const products = await Product.find({}, "title category price").limit(10);
             if (products.length > 0) {
                 productContext =
                     "\n\nCURRENT PRODUCTS IN STORE:\n" +
@@ -79,11 +79,11 @@ export const chatMessage = async (req, res) => {
                 "X-Title": "Ajmera Paints Chatbot",
             },
             body: JSON.stringify({
-                model: process.env.OPENROUTER_MODEL || "openai/gpt-4o-mini",
-                messages,
-                max_tokens: 512,
-                temperature: 0.7,
-            }),
+  model: "openai/gpt-5-nano-2025-08-07",
+  messages,
+  max_tokens: 200,
+  temperature: 0.4,
+  reasoning: { effort: "low" }}),
         });
 
         if (!response.ok) {
@@ -93,7 +93,8 @@ export const chatMessage = async (req, res) => {
         }
 
         const data = await response.json();
-        const reply =
+        console.log("OPENROUTER RAW RESPONSE:");
+        console.log(JSON.stringify(data, null, 2));        const reply =
             data.choices?.[0]?.message?.content?.trim() ||
             "Sorry, I couldn't generate a response. Please try again.";
 
@@ -106,4 +107,7 @@ export const chatMessage = async (req, res) => {
             reply: "I'm having a bit of trouble right now. For immediate help, please call us at 9837140458 or email ajmerapaintsksg@gmail.com.",
         });
     }
-};
+};console.log("=== CHATBOT DEBUG ===");
+console.log("API KEY:", process.env.OPENROUTER_API_KEY ? "FOUND ✓" : "MISSING ✗");
+console.log("MODEL:", process.env.OPENROUTER_MODEL);
+console.log("====================");
