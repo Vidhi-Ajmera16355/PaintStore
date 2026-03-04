@@ -7,6 +7,7 @@ import cartRouter from "./Routes/cart.js";
 import addressRouter from "./Routes/address.js";
 import cors from "cors";
 import paymentRouter from "./Routes/payment.js";
+import chatRouter from "./Routes/chat.js";       // ← ADD THIS
 
 const app = express();
 const port = 1000;
@@ -39,6 +40,9 @@ app.use("/api/address", addressRouter);
 // Payment Router
 app.use("/api/payment", paymentRouter);
 
+// Chat / Chatbot Router                         // ← ADD THIS
+app.use("/api/chat", chatRouter);
+
 // MongoDB connection
 (async () => {
   try {
@@ -57,7 +61,10 @@ app.use("/api/payment", paymentRouter);
 // Global handler for unhandled promise rejections
 process.on("unhandledRejection", (reason, promise) => {
   console.error("Unhandled Rejection at:", promise, "reason:", reason);
-  // You can add logic here to log the error or take other actions
 });
 
-app.listen(port, () => console.log(`Server is running on port ${port}`));
+const PORT = process.env.PORT || 9000;
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
