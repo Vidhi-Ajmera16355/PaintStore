@@ -1,10 +1,11 @@
-import  Product from "../Models/Product.js";
+import Product from "../Models/Product.js";
 
 // add product
 export const addProduct = async (req, res) => {
-  const { title, description, price, category, qty, imgSrc } = req.body;
   try {
-    let product = await Products.create({
+    const { title, description, price, category, qty, imgSrc } = req.body;
+
+    const product = await Product.create({
       title,
       description,
       price,
@@ -12,38 +13,60 @@ export const addProduct = async (req, res) => {
       qty,
       imgSrc,
     });
-    res.json({ message: "Product added successfully..!!", product });
+
+    res.json({ message: "Product added successfully!", product });
   } catch (error) {
-    res.json(error.message);
+    res.status(500).json({ message: error.message });
   }
 };
 
 // get products
 export const getProducts = async (req, res) => {
-  let products = await Products.find().sort({ createdAt: -1 });
-  res.json({ message: "All Products", products });
+  try {
+    const products = await Product.find().sort({ createdAt: -1 });
+    res.json({ message: "All Products", products });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
-// find product by ID
+// get product by id
 export const getProductById = async (req, res) => {
-  const id = req.params.id;
-  let product = await Products.findById(id);
-  if (!product) return res.json({ message: "Invalid Id" });
-  res.json({ message: "Specific Product", product });
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product) return res.status(404).json({ message: "Invalid Id" });
+
+    res.json({ message: "Specific Product", product });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
-// update product by ID
+// update
 export const updateProductById = async (req, res) => {
-  const id = req.params.id;
-  let product = await Products.findByIdAndUpdate(id, req.body, { new: true });
-  if (!product) return res.json({ message: "Invalid Id" });
-  res.json({ message: "Product has been updated!", product });
+  try {
+    const product = await Product.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true }
+    );
+
+    if (!product) return res.status(404).json({ message: "Invalid Id" });
+
+    res.json({ message: "Product updated!", product });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
-// delete product by ID
+// delete
 export const deleteProductById = async (req, res) => {
-  const id = req.params.id;
-  let product = await Products.findByIdAndDelete(id);
-  if (!product) return res.json({ message: "Invalid Id" });
-  res.json({ message: "Product has been deleted!", product });
+  try {
+    const product = await Product.findByIdAndDelete(req.params.id);
+    if (!product) return res.status(404).json({ message: "Invalid Id" });
+
+    res.json({ message: "Product deleted!", product });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
