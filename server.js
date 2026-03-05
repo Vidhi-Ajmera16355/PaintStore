@@ -2,9 +2,9 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import express from "express";
-import mongoose from "mongoose";
-import bodyParser from "express";
+import connectDB from "./config/db.js";
 import cors from "cors";
+
 import userRouter from "./Routes/user.js";
 import productRouter from "./Routes/product.js";
 import cartRouter from "./Routes/cart.js";
@@ -15,7 +15,8 @@ import adminRouter from "./Routes/admin.js";
 
 const app = express();
 
-app.use(bodyParser.json());
+app.use(express.json());
+
 app.use(
   cors({
     origin: true,
@@ -34,18 +35,18 @@ app.use("/api/payment", paymentRouter);
 app.use("/api/chat", chatRouter);
 app.use("/api/admin", adminRouter);
 
-(async () => {
+const startServer = async () => {
   try {
-    await mongoose.connect(process.env.MONGODB_URI, { dbName: "MERN_E-Commerce" });
-    console.log("MongoDB Connected Successfully..!!");
+    await connectDB();
+
+    const PORT = process.env.PORT || 5000;
+
+    app.listen(PORT, () =>
+      console.log(`Server running on port ${PORT}`)
+    );
   } catch (error) {
-    console.error("MongoDB connection failed:", error.message);
+    console.log(error);
   }
-})();
+};
 
-process.on("unhandledRejection", (reason, promise) => {
-  console.error("Unhandled Rejection at:", promise, "reason:", reason);
-});
-
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+startServer();
