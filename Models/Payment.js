@@ -4,6 +4,11 @@ const paymentSchema = new mongoose.Schema(
   {
     orderDate: { type: Date, default: Date.now },
     payStatus: { type: String },
+    orderStatus: {
+      type: String,
+      enum: ["Processing", "Confirmed", "Shipped", "Out for Delivery", "Delivered", "Cancelled"],
+      default: "Processing",
+    },
   },
   { strict: false }
 );
