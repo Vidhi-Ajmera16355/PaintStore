@@ -50,13 +50,34 @@ export const login = async (req, res) => {
 export const googleAuth = async (req, res) => {
   const { credential } = req.body;
   try {
-    const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+    const googleClientIds = (
+      process.env.GOOGLE_CLIENT_IDS || process.env.GOOGLE_CLIENT_ID || ""
+    )
+      .split(",")
+      .map((value) => value.trim())
+      .filter(Boolean);
+
+    if (!googleClientIds.length) {
+      return res.status(500).json({
+        message: "Google OAuth is not configured on the server",
+        success: false,
+      });
+    }
+
+    const client = new OAuth2Client();
     const ticket = await client.verifyIdToken({
       idToken: credential,
-      audience: process.env.GOOGLE_CLIENT_ID,
+      audience: googleClientIds,
     });
     const payload = ticket.getPayload();
-    const { email, name } = payload;
+    const { email, name, email_verified: emailVerified } = payload;
+
+    if (!email || !emailVerified) {
+      return res.status(400).json({
+        message: "Google account email is not verified",
+        success: false,
+      });
+    }
     
     let user = await User.findOne({ email });
     
