@@ -9,6 +9,7 @@ const paymentSchema = new mongoose.Schema(
       enum: ["Processing", "Confirmed", "Shipped", "Out for Delivery", "Delivered", "Cancelled"],
       default: "Processing",
     },
+    paymentMethod: { type: String, default: "Online" },
   },
   { strict: false }
 );

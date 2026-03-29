@@ -4,11 +4,15 @@ import {
   userOrder,
   verify,
   allOrders,
+  codCheckout
 } from "../Controllers/payment.js";
 import { Authenticated } from "../Middlewares/auth.js";
 const router = express.Router();
 // checkout
 router.post("/checkout", checkout);
+
+// cod checkout
+router.post("/cod-checkout", codCheckout);
 
 // verify and save to DB
 router.post("/verify-payment", verify);

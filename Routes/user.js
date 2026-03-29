@@ -1,5 +1,5 @@
 import express from "express";
-import { login, profile, register, users, googleAuth } from "../Controllers/user.js";
+import { login, profile, register, users, googleAuth, forgotPassword, resetPassword } from "../Controllers/user.js";
 import { Authenticated } from "../Middlewares/auth.js";
 const router = express.Router();
 
@@ -13,5 +13,9 @@ router.get("/all", users);
 router.get("/profile", Authenticated, profile);
 // google auth login/register
 router.post("/google-auth", googleAuth);
+// forgot password
+router.post("/forgot-password", forgotPassword);
+// reset password
+router.put("/reset-password/:token", resetPassword);
 
 export default router;

@@ -51,6 +51,30 @@ export const verify = async (req, res) => {
   res.json({ message: "payment successfull..", success: true, orderConfirm });
 };
 
+export const codCheckout = async (req, res) => {
+  const { amount, orderItems, userShipping, userId } = req.body;
+
+  // Add 10% fee for COD
+  const totalAmount = Math.round(amount + (amount * 0.10));
+  
+  try {
+    let orderConfirm = await Payment.create({
+      orderId: `COD_${Date.now()}`,
+      paymentId: "COD",
+      signature: "COD",
+      amount: totalAmount,
+      orderItems,
+      userId,
+      userShipping,
+      payStatus: "COD",
+      paymentMethod: "COD"
+    });
+    res.json({ message: "COD Order successfully placed", success: true, orderConfirm });
+  } catch (error) {
+    res.json({ message: error.message, success: false });
+  }
+};
+
 // user specificorder
 export const userOrder = async (req, res) => {
   let userId = req.user._id.toString();

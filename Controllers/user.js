@@ -2,15 +2,25 @@ import { User } from "../Models/User.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { OAuth2Client } from "google-auth-library";
+import nodemailer from "nodemailer";
+import crypto from "crypto";
+
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: 'vidhi2005ajmera@gmail.com',
+    pass: 'uzdi awrd ktay uszl'
+  }
+});
 
 export const register = async (req, res) => {
-  const { name, email, password } = req.body;
+  const { name, email, mobile, password } = req.body;
   try {
-    let user = await User.findOne({ email });
-    if (user) return res.json({ message: "User already exist", success: false });
+    let user = await User.findOne({ $or: [{ email }, { mobile }] });
+    if (user) return res.json({ message: "User with this email or mobile already exists", success: false });
 
     const hashPass = await bcrypt.hash(password, 10);
-    user = await User.create({ name, email, password: hashPass });
+    user = await User.create({ name, email, mobile, password: hashPass });
     res.json({ message: "User registered successfully..!!", user, success: true });
   } catch (error) {
     res.json({ message: error.message });
@@ -18,9 +28,9 @@ export const register = async (req, res) => {
 };
 
 export const login = async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password } = req.body; // email can also be mobile here
   try {
-    let user = await User.findOne({ email });
+    let user = await User.findOne({ $or: [{ email: email }, { mobile: email }] });
     if (!user) return res.json({ message: "User not found", success: false });
 
     if (!user.password) {
@@ -128,5 +138,70 @@ export const makeAdmin = async (req, res) => {
     res.json({ message: "User promoted to admin", user, success: true });
   } catch (error) {
     res.json({ message: error.message });
+  }
+};
+
+// Forgot Password
+export const forgotPassword = async (req, res) => {
+  const { email } = req.body; // could be email or mobile if needed, let's assume email for now
+  try {
+    const user = await User.findOne({ email });
+    if (!user) return res.json({ message: "User with this email does not exist", success: false });
+
+    const resetToken = crypto.randomBytes(20).toString('hex');
+    user.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+    user.resetPasswordExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
+    await user.save({ validateBeforeSave: false });
+
+    const frontendUrl = (process.env.SITE_URL || 'https://frontend-store-paints.vercel.app').replace(/\/$/, '');
+    const resetUrl = `${frontendUrl}/reset-password/${resetToken}`;
+
+    const message = `You requested a password reset. Please make a PUT request to: \n\n ${resetUrl}`;
+
+    try {
+      await transporter.sendMail({
+        to: user.email,
+        subject: "Ajmera Paints - Password Reset",
+        text: message
+      });
+      res.json({ message: "Reset token sent to email!", success: true });
+    } catch (err) {
+      user.resetPasswordToken = undefined;
+      user.resetPasswordExpires = undefined;
+      await user.save({ validateBeforeSave: false });
+      return res.json({ message: "Email could not be sent", success: false });
+    }
+  } catch (error) {
+    res.json({ message: error.message, success: false });
+  }
+};
+
+// Reset Password
+export const resetPassword = async (req, res) => {
+  try {
+    const resetPasswordToken = crypto.createHash('sha256').update(req.params.token).digest('hex');
+
+    const user = await User.findOne({
+      resetPasswordToken,
+      resetPasswordExpires: { $gt: Date.now() }
+    });
+
+    if (!user) {
+      return res.json({ message: "Invalid or expired reset token", success: false });
+    }
+
+    const { password } = req.body;
+    if (!password) {
+      return res.json({ message: "Please provide a new password", success: false });
+    }
+
+    user.password = await bcrypt.hash(password, 10);
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+    await user.save();
+
+    res.json({ message: "Password updated successfully! You can now login.", success: true });
+  } catch (error) {
+    res.json({ message: error.message, success: false });
   }
 };
